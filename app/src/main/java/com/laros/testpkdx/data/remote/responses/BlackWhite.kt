@@ -1,13 +1,25 @@
 package com.laros.testpkdx.data.remote.responses
 
+
+import com.google.gson.annotations.SerializedName
+
 data class BlackWhite(
+    @SerializedName("animated")
     val animated: Animated,
-    val back_default: String,
-    val back_female: String,
-    val back_shiny: String,
-    val back_shiny_female: String,
-    val front_default: String,
-    val front_female: String,
-    val front_shiny: String,
-    val front_shiny_female: String
+    @SerializedName("back_default")
+    val backDefault: String,
+    @SerializedName("back_female")
+    val backFemale: String,
+    @SerializedName("back_shiny")
+    val backShiny: String,
+    @SerializedName("back_shiny_female")
+    val backShinyFemale: String,
+    @SerializedName("front_default")
+    val frontDefault: String,
+    @SerializedName("front_female")
+    val frontFemale: String,
+    @SerializedName("front_shiny")
+    val frontShiny: String,
+    @SerializedName("front_shiny_female")
+    val frontShinyFemale: String
 )

@@ -1,6 +1,11 @@
 package com.laros.testpkdx.data.remote.responses
 
+
+import com.google.gson.annotations.SerializedName
+
 data class IconsX(
-    val front_default: String,
-    val front_female: String
+    @SerializedName("front_default")
+    val frontDefault: String,
+    @SerializedName("front_female")
+    val frontFemale: String
 )

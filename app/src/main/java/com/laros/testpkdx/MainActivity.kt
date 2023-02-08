@@ -23,35 +23,34 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = "poke_list_screen"
+                    startDestination = "poke_list_screen",
                 ) {
                     composable("poke_list_screen") {
                         PokeListScreen(navController = navController)
                     }
-                    composable("poke_detail_screen/ {dominantColor}/ {pokemonName}",
+                    composable(
+                        "poke_detail_screen/ {dominantColor}/ {pokemonName}",
                         arguments = listOf(
                             navArgument("dominantColor") {
                                 type = NavType.IntType
                             },
                             navArgument("pokemonName") {
                                 type = NavType.StringType
-                            }
-                        )
+                            },
+                        ),
                     ) {
                         val dominantColor = remember {
                             {
                                 val color = it.arguments?.getInt("dominantColor")
-                                color?.let{ Color(it) ?: Color.White}
+                                color?.let { Color(it) ?: Color.White }
                             }
                         }
                         val pokemonName = remember {
                             it.arguments?.getString("pokemonName")
                         }
                     }
-
                 }
             }
         }
     }
 }
-

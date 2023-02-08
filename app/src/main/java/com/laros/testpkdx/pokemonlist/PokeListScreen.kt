@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -36,11 +37,11 @@ import com.laros.testpkdx.ui.theme.RobotoCondensed
 
 @Composable
 fun PokeListScreen(
-    navController: NavController
+    navController: NavController,
 ) {
     Surface(
         color = MaterialTheme.colors.background,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         Column {
             Spacer(modifier = Modifier.height(20.dp))
@@ -49,15 +50,17 @@ fun PokeListScreen(
                 contentDescription = "Pokemon",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(CenterHorizontally)
+                    .align(CenterHorizontally),
             )
             SearchBar(
                 hint = "Search...",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            PokemonList(navController = navController)
         }
     }
 }
@@ -66,7 +69,7 @@ fun PokeListScreen(
 fun SearchBar(
     modifier: Modifier = Modifier,
     hint: String = "",
-    onSearch: (String) -> Unit = {}
+    onSearch: (String) -> Unit = {},
 ) {
     var text by remember {
         mutableStateOf("")
@@ -92,17 +95,51 @@ fun SearchBar(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .onFocusChanged {
                     isHintDisplayed = it.isFocused != true
-                }
+                },
         )
         if (isHintDisplayed) {
             Text(
                 text = hint,
                 color = Color.LightGray,
                 modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
             )
         }
     }
+}
+
+@Composable
+fun PokemonList(
+    navController: NavController,
+    viewModel: PokeListViewModel = hiltViewModel()
+
+) {
+    val pokemonList by remember {
+        viewModel.pokemonList
+    }
+    val endReached by remember {
+        viewModel.endReached
+    }
+    val loadError by remember {
+        viewModel.loadError
+    }
+    val isLoading by remember {
+        viewModel.isLoading
+    }
+    LazyColumn(contentPadding = PaddingValues(16.dp)){
+        val itemCount = if(pokemonList.size % 2 == 0){
+            pokemonList.size/2
+        }else{
+            pokemonList.size/2+1
+        }
+        items(itemCount){
+            if(it >= itemCount - 1 && !endReached){
+                viewModel.loadPokePaginated()
+            }
+            PokeRow(rowIndex = it, entries = pokemonList, navController = navController)
+        }
+    }
+
 }
 
 @Composable
@@ -110,7 +147,7 @@ fun PokeEntry(
     entry: PokedexListEntry,
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: PokeListViewModel = hiltViewModel()
+    viewModel: PokeListViewModel = hiltViewModel(),
 ) {
     val defaultDominantColor = MaterialTheme.colors.surface
     var dominantColor by remember {
@@ -126,21 +163,20 @@ fun PokeEntry(
                 Brush.verticalGradient(
                     listOf(
                         dominantColor,
-                        defaultDominantColor
-                    )
-                )
+                        defaultDominantColor,
+                    ),
+                ),
             )
             .clickable {
                 navController.navigate(
-                    "poke_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                    "poke_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}",
                 )
-            }
+            },
     ) {
         Column {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(entry.imageUrl)
-                    .crossfade(true)
                     .target {
                         viewModel.calcDominantColor(it) { color ->
                             dominantColor = color
@@ -150,14 +186,14 @@ fun PokeEntry(
                 contentDescription = entry.pokemonName,
                 modifier = Modifier
                     .size(120.dp)
-                    .align(CenterHorizontally)
+                    .align(CenterHorizontally),
             )
             Text(
                 text = entry.pokemonName,
                 fontFamily = RobotoCondensed,
                 fontSize = 20.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -167,22 +203,22 @@ fun PokeEntry(
 fun PokeRow(
     rowIndex: Int,
     entries: List<PokedexListEntry>,
-    navController: NavController
+    navController: NavController,
 
-) {
+    ) {
     Column {
         Row {
             PokeEntry(
                 entry = entries[rowIndex * 2],
                 navController = navController,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             Spacer(modifier = Modifier.width(16.dp))
             if (entries.size >= rowIndex * 2 + 2) {
                 PokeEntry(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             } else {
                 Spacer(modifier = (Modifier.weight(1f)))
@@ -191,10 +227,3 @@ fun PokeRow(
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
-
-
-
-
-
-
-

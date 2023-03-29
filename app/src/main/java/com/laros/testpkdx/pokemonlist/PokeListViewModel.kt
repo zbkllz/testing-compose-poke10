@@ -45,8 +45,13 @@ class PokeListViewModel @Inject constructor(
                         } else {
                             entry.url.takeLastWhile { it.isDigit() }
                         }
-                        val url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png"
-                        PokedexListEntry(entry.name.capitalize(Locale.ROOT), url, number.toInt())
+                        val url =
+                            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png"
+                        PokedexListEntry(entry.name.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase(
+                                Locale.ROOT
+                            ) else it.toString()
+                        }, url, number.toInt())
                     }
                     currentPage++
 

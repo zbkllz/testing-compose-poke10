@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,7 +74,7 @@ fun SearchBar(
         mutableStateOf("")
     }
     var isHintDisplayed by remember {
-        mutableStateOf(false)
+        mutableStateOf(hint != "")
     }
 
     Box(modifier = modifier) {
@@ -87,7 +86,6 @@ fun SearchBar(
             },
             maxLines = 1,
             singleLine = true,
-            textStyle = TextStyle(color = Color.Black),
             modifier = Modifier
                 .fillMaxWidth()
                 .shadow(5.dp, CircleShape)
@@ -95,16 +93,17 @@ fun SearchBar(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .onFocusChanged {
                     isHintDisplayed = it.isFocused != true
-                },
+                }
+
         )
         if (isHintDisplayed) {
             Text(
                 text = hint,
                 color = Color.LightGray,
-                modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
             )
         }
+
     }
 }
 
@@ -126,14 +125,14 @@ fun PokemonList(
     val isLoading by remember {
         viewModel.isLoading
     }
-    LazyColumn(contentPadding = PaddingValues(16.dp)){
-        val itemCount = if(pokemonList.size % 2 == 0){
-            pokemonList.size/2
-        }else{
-            pokemonList.size/2+1
+    LazyColumn(contentPadding = PaddingValues(16.dp)) {
+        val itemCount = if (pokemonList.size % 2 == 0) {
+            pokemonList.size / 2
+        } else {
+            pokemonList.size / 2 + 1
         }
-        items(itemCount){
-            if(it >= itemCount - 1 && !endReached){
+        items(itemCount) {
+            if (it >= itemCount - 1 && !endReached) {
                 viewModel.loadPokePaginated()
             }
             PokeRow(rowIndex = it, entries = pokemonList, navController = navController)
@@ -177,13 +176,14 @@ fun PokeEntry(
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(entry.imageUrl)
-                    .target {
-                        viewModel.calcDominantColor(it) { color ->
-                            dominantColor = color
-                        }
-                    }
+                    .crossfade(true)
                     .build(),
                 contentDescription = entry.pokemonName,
+                onSuccess = {
+                    viewModel.calcDominantColor(it.result.drawable) { color ->
+                        dominantColor = color
+                    }
+                },
                 modifier = Modifier
                     .size(120.dp)
                     .align(CenterHorizontally),
@@ -226,4 +226,5 @@ fun PokeRow(
         }
         Spacer(modifier = Modifier.height(16.dp))
     }
+
 }

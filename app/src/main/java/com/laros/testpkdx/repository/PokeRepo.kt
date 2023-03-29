@@ -7,6 +7,7 @@ import com.laros.testpkdx.util.Resource
 import dagger.hilt.android.scopes.ActivityScoped
 import javax.inject.Inject
 
+
 @ActivityScoped
 class PokeRepo @Inject constructor(
     private val api: PokeApi

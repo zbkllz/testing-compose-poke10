@@ -8,9 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -37,6 +35,7 @@ import com.laros.testpkdx.ui.theme.RobotoCondensed
 @Composable
 fun PokeListScreen(
     navController: NavController,
+    viewModel: PokeListViewModel = hiltViewModel()
 ) {
     Surface(
         color = MaterialTheme.colors.background,
@@ -57,6 +56,7 @@ fun PokeListScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
             ) {
+                viewModel.searchPokemonList(it)
             }
             Spacer(modifier = Modifier.height(16.dp))
             PokemonList(navController = navController)
@@ -92,7 +92,7 @@ fun SearchBar(
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .onFocusChanged {
-                    isHintDisplayed = it.isFocused != true
+                    isHintDisplayed = it.isFocused != true && text.isNotEmpty()
                 }
 
         )
@@ -125,6 +125,10 @@ fun PokemonList(
     val isLoading by remember {
         viewModel.isLoading
     }
+    val isSearching by remember {
+        viewModel.isSearching
+    }
+
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
         val itemCount = if (pokemonList.size % 2 == 0) {
             pokemonList.size / 2
@@ -132,10 +136,22 @@ fun PokemonList(
             pokemonList.size / 2 + 1
         }
         items(itemCount) {
-            if (it >= itemCount - 1 && !endReached) {
+            if (it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
                 viewModel.loadPokePaginated()
             }
             PokeRow(rowIndex = it, entries = pokemonList, navController = navController)
+        }
+    }
+
+    Box(contentAlignment = Center,
+    modifier = Modifier.fillMaxSize()){
+        if (isLoading){
+            CircularProgressIndicator(color = MaterialTheme.colors.primary)
+        }
+        if(loadError.isNotEmpty()){
+            RetrySection(error = loadError){
+                viewModel.loadPokePaginated()
+            }
         }
     }
 
@@ -227,4 +243,23 @@ fun PokeRow(
         Spacer(modifier = Modifier.height(16.dp))
     }
 
+}
+
+@Composable
+fun RetrySection(
+    error: String,
+    onRetry: () -> Unit
+) {
+    Column {
+        Text(error, color = Color.Red, fontSize = 18.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Button (
+            onClick = {
+                onRetry()
+            },
+            modifier = Modifier.align(CenterHorizontally)
+        ) {
+            Text(text = "Retry")
+        }
+    }
 }

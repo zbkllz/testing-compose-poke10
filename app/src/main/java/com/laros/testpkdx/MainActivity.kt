@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.laros.testpkdx.pokemondetail.PokeDetailScreen
 import com.laros.testpkdx.pokemonlist.PokeListScreen
 import com.laros.testpkdx.pokemonlist.PokeListViewModel
 import com.laros.testpkdx.ui.theme.PokedexTheme
@@ -43,17 +44,23 @@ class MainActivity : ComponentActivity() {
                         ),
                     ) {
                         val dominantColor = remember {
-                            {
-                                val color = it.arguments?.getInt("dominantColor")
-                                color?.let { Color(it) ?: Color.White }
-                            }
+                            val color = it.arguments?.getInt("dominantColor")
+                            color?.let { Color(it) } ?: Color.White
                         }
                         val pokemonName = remember {
                             it.arguments?.getString("pokemonName")
                         }
+                        PokeDetailScreen(
+                            dominantColor = dominantColor,
+                            pokemonName = pokemonName?.lowercase() ?: "",
+                            navController = navController
+                        )
                     }
+
                 }
             }
         }
     }
+
+
 }

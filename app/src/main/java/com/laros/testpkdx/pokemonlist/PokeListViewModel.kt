@@ -57,7 +57,7 @@ class PokeListViewModel @Inject constructor(
                     ignoreCase = true
                 ) || it.number.toString() == query.trim()
             }
-            if ( isSearchStarting){
+            if (isSearchStarting) {
                 cachedPokemonList = pokemonList.value
                 isSearchStarting = false
             }
@@ -96,6 +96,7 @@ class PokeListViewModel @Inject constructor(
                     loadError.value = result.message!!
                     isLoading.value = false
                 }
+                is Resource.Loading -> TODO()
             }
         }
     }

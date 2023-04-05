@@ -3,7 +3,10 @@ package com.laros.testpkdx.pokemondetail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -12,22 +15,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.laros.testpkdx.R
 import com.laros.testpkdx.data.remote.responses.Pokemon
+import com.laros.testpkdx.data.remote.responses.Type
 import com.laros.testpkdx.util.Resource
+import com.laros.testpkdx.util.parseTypeToColor
+import java.lang.Math.round
+import java.util.*
 
 @Composable
 fun PokeDetailScreen(
@@ -91,10 +104,10 @@ fun PokeDetailScreen(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(it?.frontDefault)
                             .build(),
-                    contentDescription = pokeInfo.data?.name,
-                    modifier = Modifier
-                        .size(pokemonImageSize)
-                        .offset(y = topPadding)
+                        contentDescription = pokeInfo.data?.name,
+                        modifier = Modifier
+                            .size(pokemonImageSize)
+                            .offset(y = topPadding)
 
                     )
                 }
@@ -139,7 +152,11 @@ fun PokeDetailStateWrapper(
 ) {
     when (pokeInfo) {
         is Resource.Success -> {
-
+            PokeDetailSection(
+                pokeInfo = pokeInfo.data!!,
+                modifier = modifier
+                    .offset(y = (-20).dp)
+            )
         }
         is Resource.Error -> {
             Text(
@@ -157,3 +174,134 @@ fun PokeDetailStateWrapper(
         }
     }
 }
+
+@Composable
+fun PokeDetailSection(
+    pokeInfo: Pokemon,
+    modifier: Modifier = Modifier
+) {
+    val scrollState = rememberScrollState()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            .offset(y = 100.dp)
+            .verticalScroll(scrollState)
+    ) {
+        Text(
+            text = "#${pokeInfo.id} ${
+                pokeInfo.name.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(
+                        Locale.ROOT
+                    ) else it.toString()
+                }
+            } ",
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onSurface
+        )
+        PokeTypeSection(types = pokeInfo.types)
+        PokeDetailDataSection(
+            pokeWeight = pokeInfo.weight,
+            pokeHeight = pokeInfo.height
+        )
+    }
+}
+
+@Composable
+fun PokeTypeSection(
+    types: List<Type>
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(16.dp)
+    ) {
+        for (type in types) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp)
+                    .clip(CircleShape)
+                    .background(parseTypeToColor(type))
+                    .height(35.dp)
+            ) {
+                Text(
+                    text = type.type.name.replaceFirstChar {
+                        if (it.isLowerCase()) it.titlecase(
+                            Locale.ROOT
+                        ) else it.toString()
+                    },
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PokeDetailDataSection(
+    pokeWeight: Int,
+    pokeHeight: Int,
+    sectionHeight: Dp = 80.dp
+) {
+
+    val pokeWeightInKg = remember {
+        round(pokeWeight * 100f) / 1000f
+    }
+    val pokeWeightInMeters = remember {
+        round(pokeHeight * 100f) / 1000f
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        PokeDetailDataItem(
+            dataValue = pokeWeightInKg,
+            dataUnit = "kg",
+            dataIcon = painterResource(
+                id = R.drawable.ic_weight
+            ),
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(
+            modifier = Modifier
+                .size(1.dp, sectionHeight)
+                .background(Color.LightGray)
+        )
+        PokeDetailDataItem(
+            dataValue = pokeWeightInMeters,
+            dataUnit = "m",
+            dataIcon = painterResource(
+                id = R.drawable.ic_height
+            ),
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun PokeDetailDataItem(
+    dataValue: Float,
+    dataUnit: String,
+    dataIcon: Painter,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+    ) {
+        Icon(
+            painter = dataIcon,
+            contentDescription = null,
+            tint = MaterialTheme.colors.onSurface
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = "$dataValue$dataUnit", color = MaterialTheme.colors.onSurface)
+    }
+}
+
+
